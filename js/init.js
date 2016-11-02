@@ -1,8 +1,10 @@
 
-// STUFF THAT WILL BE PUT IN THE GAME
+// * * * STUFF THAT WILL BE PUT IN THE GAME
 
 let monster = {
     name: "Goblin"
+    , fileName: ""
+    , id: ""
     , hp: 10
     , ac: 15
     , attack: 2
@@ -54,9 +56,15 @@ const Game = {
     , items: []
     , traps: []
     , environment: []
+    , exploreOrder: []
+    , combatOrder: []
 }
 
-// DEFINING GAME PARAMETERS
+// STUFF THAT WILL BE PUT IN THE GAME * * *
+
+
+
+// * * * DEFINING GAME PARAMETERS
 
 Game.players = [{
     location: [0, 0]
@@ -83,11 +91,25 @@ Game.items = [
     }
 ]
 
-// DEFINING GAME PARAMETERS
+// DEFINING GAME PARAMETERS * * *
 
 
 
-// MAIN INITS
+
+
+// * * * PRIMARY GAME FUNCTIONS
+
+Game.explore = function(){
+
+}
+
+
+
+// PRIMARY GAME FUNCTIONS * * *
+
+
+
+// * * * MAIN INITS
 
 function boardInit(height, width, players, monsters, traps, stuff, items){
     for(let y = 0; y < height; y++){
@@ -104,63 +126,85 @@ function boardInit(height, width, players, monsters, traps, stuff, items){
             Game.board[y].push(square);
         }
     }
-    loadEnvironment(stuff);
-    loadTraps(traps);
-    loadMonsters(monsters);
-    loadPlayers(players);
-    loadItems(items);
+    loadEnvironment();
+    loadTraps();
+    loadMonsters();
+    loadPlayers();
+    loadItems();
 
-    printBoard(Game.board);
+    defineExploreOrder();
+    printBoard();
+    Game.explore();
 }
 
-function loadEnvironment(stuff){
-    for(let i = 0; i < stuff.length; i++){
-        let x = stuff[i].location[0];
-        let y = stuff[i].location[1];
+function loadEnvironment(){
+    for(let i = 0; i < Game.environment.length; i++){
+        let x = Game.environment[i].location[0];
+        let y = Game.environment[i].location[1];
         Game.board[x][y].free = false;
         Game.board[x][y].type = "environmental";
-        Game.board[x][y].name = stuff[i].name;
+        Game.board[x][y].name = Game.environment[i].name;
     }
 }
 
-function loadTraps(traps){
-    for(let i = 0; i < traps.length; i++){
-        let x = traps[i].location[0];
-        let y = traps[i].location[1];
-        Game.board[x][y].type = "trap";
-        Game.board[x][y].name = traps[i].name
+function loadTraps(){
+    for(let i = 0; i < Game.traps.length; i++){
+        let x = Game.traps[i].location[0];
+        let y = Game.traps[i].location[1];
+        Game.board[x][y].trap = Game.traps[i].trap
     }
 }
 
-function loadMonsters(monsters){
-    for(let i = 0; i < monsters.length; i++){
-        let x = monsters[i].location[0];
-        let y = monsters[i].location[1];
+function loadMonsters(){
+    for(let i = 0; i < Game.monsters.length; i++){
+        let x = Game.monsters[i].location[0];
+        let y = Game.monsters[i].location[1];
         Game.board[x][y].free = false;
         Game.board[x][y].type = "monster";
-        Game.board[x][y].name = monsters[i].mon.name;
+        Game.board[x][y].name = Game.monsters[i].mon.name;
     }
 }
 
-function loadPlayers(players){
-    for(let i = 0; i < players.length; i++){
-        let x = players[i].location[0];
-        let y = players[i].location[1];
+function loadPlayers(){
+    for(let i = 0; i < Game.players.length; i++){
+        let x = Game.players[i].location[0];
+        let y = Game.players[i].location[1];
         Game.board[x][y].free = false;
         Game.board[x][y].type = "player";
-        Game.board[x][y].name = players[i].char.name;
+        Game.board[x][y].name = Game.players[i].char.name;
     }
 }
 
-function loadItems(items){
-    for(let i = 0; i < items.length; i++){
-        let x = items[i].location[0];
-        let y = items[i].location[1];
-        Game.board[x][y].items.push(items[i].item);
+function loadItems(){
+    for(let i = 0; i < Game.items.length; i++){
+        let x = Game.items[i].location[0];
+        let y = Game.items[i].location[1];
+        Game.board[x][y].items.push(Game.items[i].item);
     }
 }
 
-// MAIN INITS
+function defineExploreOrder(){
+    if(Game.players.length > 1){
+        Game.exploreOrder = Game.players.sort((a, b) => {
+            return a.init - b.init;
+        });
+    } else {
+        Game.exploreOrder.push(Game.players[0].name);
+    }
+    if(Game.monsters.length > 1){
+        Game.exploreOrder.concat(Game.monsters.sort((a, b) => {
+            return a.init - b.init;
+        }));
+    } else {
+        Game.exploreOrder.concat(Game.monsters[0].name);
+    }
+}
+
+function defineCombatOrder(){
+
+}
+
+// MAIN INITS * * *
 
 
 
@@ -168,20 +212,21 @@ Game.height = 10;
 Game.width = 10;
 boardInit(Game.height, Game.width, Game.players, Game.monsters, Game.traps, Game.environment, Game.items);
 console.log(Game.board);
+console.log(Game.explorOrder);
 
 
 
 
 
-// PRINTBOARD
+// * * * PRINTBOARD
 
-function printBoard(game){
+function printBoard(){
     for(let row = 0; row < Game.width; row++){
         let line = "";
         for(let col = 0; col < Game.height; col++){
             if(Game.board[row][col].items.length > 0){
                 line += " I";
-            } else if(Game.board[row][col].traps){
+            } else if(Game.board[row][col].trap.name){
                 line += " T";
             } else if(Game.board[row][col].type === "player"){
                 line += " P";
